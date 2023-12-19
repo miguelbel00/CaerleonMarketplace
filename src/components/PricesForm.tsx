@@ -18,11 +18,10 @@ export interface IPriceFormProps {
   retrieveData: () => void
   getFixedRunes: () => void
   changeLanguaje: () => void
-  languaje: string
 }
 
 function PricesForm(props: IPriceFormProps) {
-  const { manualItem, languaje, onManualItemChange, useful, onUsefulChange, equip, onEquipChange, city, onCityChange, clearData, refreshData, restoreData, saveData, retrieveData, getFixedRunes, changeLanguaje } = props
+  const { manualItem, onManualItemChange, useful, onUsefulChange, equip, onEquipChange, city, onCityChange, clearData, refreshData, restoreData, saveData, retrieveData, getFixedRunes, changeLanguaje } = props
 
   const allItemsOptions = usefulItems
   const allEquipOptions = equipItems
@@ -67,8 +66,8 @@ function PricesForm(props: IPriceFormProps) {
                 <Select
                   options={allItemsOptions}
                   value={useful}
-                  onChange={e => onUsefulChange(e)}
-                  getOptionLabel={e => e.LocalizedNames ? `${e.LocalizedNames[languaje as keyof typeof e.LocalizedNames]}` : e.UniqueName}
+                  onChange={(e: IItem) => onUsefulChange(e)}
+                  getOptionLabel={e => e.LocalizedNames ? `${e.LocalizedNames['ES-ES']}` : e.UniqueName}
                   getOptionValue={e => e.UniqueName}
                   isClearable={true}
                   className="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -84,7 +83,7 @@ function PricesForm(props: IPriceFormProps) {
                   options={allEquipOptions}
                   value={equip}
                   onChange={e => onEquipChange(e)}
-                  getOptionLabel={e => e.LocalizedNames ? `${e.LocalizedNames[languaje as keyof typeof e.LocalizedNames]}` : e.UniqueName}
+                  getOptionLabel={e => e.LocalizedNames ? `${e.LocalizedNames['ES-ES']}` : e.UniqueName}
                   getOptionValue={e => e.UniqueName}
                   isClearable={true}
                   className="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -108,12 +107,6 @@ function PricesForm(props: IPriceFormProps) {
         </div>
         <div className="pt-5">
           <div className="flex flex-wrap justify-center md:justify-end">
-            <button
-              type="button"
-              onClick={() => changeLanguaje()}
-              className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-400 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-700 mr-2 mb-2" >
-              {`${languaje}`}
-            </button>
             <button
               type="button"
               onClick={() => retrieveData()}
