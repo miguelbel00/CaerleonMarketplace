@@ -1,30 +1,54 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Caerleon MarketPlace
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This web application provides real-time (delay 5-10 minutes) information about items in the Albion Online game markets. Players can access up-to-date data on item prices, market availability, and historical price trends. The application aims to enhance the in-game trading experience by offering valuable insights into the market dynamics.
 
-## Expanding the ESLint configuration
+## Features
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+Profit Calculator: Help to decide where sell or buy items on the diferents 
+markets
 
-- Configure the top-level `parserOptions` property like this:
+Real-Time Data: Get the latest information on item prices and market trends, updated every 5-10 minutes provider by [The Albion Online Data Project](https://www.albion-online-data.com/)
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+Items Images: Display images on excelent qualite providers by [Albion Render](https://render.albiononline.com/)
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Filter and Search: Efficiently find items of interest by utilizing filtering and search options, including categories, rarity, and level.
+
+Historical Price Charts: Visualize the historical price trends of items to make informed decisions on buying or selling.
+
+Automatic Updates: The application ensures that market information is automatically refreshed every 5-10 minutes to provide users with accurate and timely data.
+
+Mobile Optimization: Access the application easily on mobile devices for on-the-go market monitoring.
+
+## Todo
+
+#### Version 0.1.0
+
+ - <strike>Home Page.</strike>
+ 
+#### Version 0.5.0
+
+ - <strike>Implement basic layout and design.</strike>.
+ - Implement Footer and Nabvar.
+ 
+#### Version 1.0.0
+
+ - Integrate with Albion Online API for real-time data.
+ - Add search functionality.
+ - Deploy 
+ 
+#### Version 2.0.0
+
+ - Internalization (es, en, pt)
+ - Optimize for mobile devices and many browsers (Firefox, Brave, Opera)
+
+#### Version 3.0.0
+
+ - Add filtering functionality.
+
+#### Future Enhancements
+
+ - Add additional market metrics.
+ - Explore options for item comparison features.
