@@ -46,6 +46,7 @@ Mobile Optimization: Access the application easily on mobile devices for on-the-
 
 #### Version 3.0.0
 
+ - Dark and Light Mode
  - Add filtering functionality.
 
 #### Future Enhancements
