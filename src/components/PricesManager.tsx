@@ -5,7 +5,6 @@ import PricesTable from './PricesTable'
 
 
 function PricesManager() {
-  const [languaje, setLanguaje] = useState('ES-ES')
   const [manualItem, setManualItem] = useState('')
   const [useful, setUseful] = useState<IItem>(null)
   const [equip, setEquip] = useState<IItem>(null)
@@ -115,17 +114,11 @@ function PricesManager() {
     setEquip(item)
   }
 
-  const changeLanguaje = () => {
-    if (languaje === 'ES-ES') {
-      setLanguaje('EN-US')
-    } else {
-      setLanguaje('ES-ES')
-    }
-  }
+
 
   return (
     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-      <PricesForm languaje={languaje} changeLanguaje={changeLanguaje} manualItem={manualItem} onManualItemChange={setManualItem} useful={useful} onUsefulChange={onSetUseful} equip={equip} onEquipChange={onSetEquip} city={city} onCityChange={setCity}
+      <PricesForm  manualItem={manualItem} onManualItemChange={setManualItem} useful={useful} onUsefulChange={onSetUseful} equip={equip} onEquipChange={onSetEquip} city={city} onCityChange={setCity}
         clearData={clearData} refreshData={refreshData} restoreData={restoreData} saveData={saveData} retrieveData={retrieveData} getFixedRunes={getFixedRunes} />
       <PricesTable elements={resultsTable} sortByCallback={sortBy} removeResultCallback={removeResult} />
     </div >
