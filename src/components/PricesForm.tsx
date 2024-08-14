@@ -1,30 +1,30 @@
-import React from 'react'
-import Select from 'react-select'
-import { IItem, usefulItems, equipItems } from '../api/items'
+import React from 'react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import Select, { SingleValue, ActionMeta } from 'react-select';
+import { IItem, usefulItems, equipItems } from '../api/items';
 
 export interface IPriceFormProps {
-  manualItem: string
-  onManualItemChange: (value: string) => void
-  useful: IItem
-  onUsefulChange: (value: IItem) => void
-  equip: IItem
-  onEquipChange: (value: IItem) => void
-  city: { label: string, value: string }
-  onCityChange: (value: { label: string, value: string }) => void
-  clearData: () => void
-  refreshData: () => void
-  restoreData: () => void
-  saveData: () => void
-  retrieveData: () => void
-  getFixedRunes: () => void
-  changeLanguaje: () => void
+  manualItem: string;
+  onManualItemChange: (item: string) => void;
+  useful: IItem | null; 
+  onUsefulChange: (item: IItem | null) => void; 
+  equip: IItem | null; 
+  onEquipChange: (item: IItem | null) => void; 
+  city: { label: string; value: string };
+  onCityChange: (city: { label: string; value: string }) => void;
+  clearData: () => void;
+  refreshData: () => void;
+  restoreData: () => void;
+  saveData: () => void;
+  retrieveData: () => void;
+  getFixedRunes: () => void;
 }
 
 function PricesForm(props: IPriceFormProps) {
-  const { manualItem, onManualItemChange, useful, onUsefulChange, equip, onEquipChange, city, onCityChange, clearData, refreshData, restoreData, saveData, retrieveData, getFixedRunes, changeLanguaje } = props
+  const { manualItem, onManualItemChange, useful, onUsefulChange, equip, onEquipChange, city, onCityChange, clearData, refreshData, restoreData, saveData, retrieveData, getFixedRunes } = props;
 
-  const allItemsOptions = usefulItems
-  const allEquipOptions = equipItems
+  const allItemsOptions = usefulItems;
+  const allEquipOptions = equipItems;
   const allCities = [
     { label: 'Fort Sterling', value: 'Fort%20Sterling' },
     { label: 'Bridgewatch', value: 'Bridgewatch' },
@@ -32,7 +32,7 @@ function PricesForm(props: IPriceFormProps) {
     { label: 'Lymhurst', value: 'Lymhurst' },
     { label: 'Martlock', value: 'Martlock' },
     { label: 'Thetford', value: 'Thetford' },
-  ]
+  ];
 
   return (
     <form className="">
@@ -63,10 +63,10 @@ function PricesForm(props: IPriceFormProps) {
                 Selección Objetos
               </label>
               <div className="mt-1 sm:mt-0 sm:col-span-2">
-                <Select
+                <Select<IItem>
                   options={allItemsOptions}
-                  value={useful}
-                  onChange={(e: IItem) => onUsefulChange(e)}
+                  value={useful ?? null} // Asegúrate de manejar el caso en que `useful` sea `null`
+                  onChange={(e: SingleValue<IItem>) => onUsefulChange(e ?? null)} // Maneja el caso `null`
                   getOptionLabel={e => e.LocalizedNames ? `${e.LocalizedNames['ES-ES']}` : e.UniqueName}
                   getOptionValue={e => e.UniqueName}
                   isClearable={true}
@@ -79,10 +79,10 @@ function PricesForm(props: IPriceFormProps) {
                 Selección Equipo
               </label>
               <div className="mt-1 sm:mt-0 sm:col-span-2">
-                <Select
+                <Select<IItem>
                   options={allEquipOptions}
-                  value={equip}
-                  onChange={e => onEquipChange(e)}
+                  value={equip ?? null} // Asegúrate de manejar el caso en que `equip` sea `null`
+                  onChange={(e: SingleValue<IItem>) => onEquipChange(e ?? null)} // Maneja el caso `null`
                   getOptionLabel={e => e.LocalizedNames ? `${e.LocalizedNames['ES-ES']}` : e.UniqueName}
                   getOptionValue={e => e.UniqueName}
                   isClearable={true}
@@ -95,10 +95,10 @@ function PricesForm(props: IPriceFormProps) {
                 Ciudad
               </label>
               <div className="mt-1 sm:mt-0 sm:col-span-2">
-                <Select
+                <Select<{ label: string; value: string }>
                   options={allCities}
                   value={city}
-                  onChange={e => onCityChange(e)}
+                  onChange={(e: SingleValue<{ label: string; value: string }>) => onCityChange(e ?? { label: '', value: '' })} // Maneja el caso `null`
                   className="block w-full max-w-lg border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
@@ -124,7 +124,8 @@ function PricesForm(props: IPriceFormProps) {
             onClick={() => getFixedRunes()}
             className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 mr-2 mb-2" >
             Listado de Runas
-          </button><button
+          </button>
+          <button
             type="button"
             onClick={() => clearData()}
             className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2 mb-2" >
@@ -151,7 +152,7 @@ function PricesForm(props: IPriceFormProps) {
         </div>
       </div>
     </form>
-  )
+  );
 }
 
-export default PricesForm
+export default PricesForm;

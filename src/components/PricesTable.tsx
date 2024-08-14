@@ -16,7 +16,13 @@ const getQuality = (quality: number): string => {
   return '';
 };
 
-const getFullName = (item: IItem): string => (item.quality > 1 ? `${item.name} (${getQuality(item.quality)})` : item.name);
+const getFullName = (item: IItem): string => {
+  // Proporciona valores por defecto si `item.name` o `item.quality` son `undefined`
+  const name = item.name ?? 'Desconocido'; // Proporciona un nombre por defecto si `item.name` es `undefined`
+  const quality = item.quality ?? 0; // Proporciona un valor por defecto si `item.quality` es `undefined`
+
+  return quality > 1 ? `${name} (${getQuality(quality)})` : name;
+};
 
 interface IPriceTableProps {
   elements: IItem[];
