@@ -1,31 +1,27 @@
+'use client'
+
 import React, { useEffect, useState } from "react";
-import { IItem, runesFixed } from "../api/items";
+import { runesFixed } from "../items";
 import PricesForm from "./PricesForm";
 import PricesTable from "./PricesTable";
 
 function PricesManager() {
   const [manualItem, setManualItem] = useState("");
-  const [useful, setUseful] = useState<IItem | null>(null);
-  const [equip, setEquip] = useState<IItem | null>(null);
+  const [useful, setUseful] = useState(null);
+  const [equip, setEquip] = useState(null);
   const [city, setCity] = useState({
     label: "Fort Sterling",
     value: "Fort Sterling",
   });
-  const [resultsTable, setResultsTable] = useState<IItem[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [resultsTable, setResultsTable] = useState([]);
   const [lastSort, setLastSort] = useState({ property: "", desc: false });
-  type Language = "EN-US" | "ES-ES"; // Agrega otros idiomas si es necesario
-  const languaje: Language = "EN-US"; // Asigna el valor que corresponda
+  const languaje = "EN-US"; // Asigna el valor que corresponda
 
   useEffect(() => {
     restoreData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchData = async (
-    actualUniqueName: string = "",
-    actualCity: string = ""
-  ) => {
+  const fetchData = async (actualUniqueName = "", actualCity = "") => {
     const a = "T1_CARROT";
     const res = await fetch(
       `https://www.albion-online-data.com/api/v2/stats/Prices/${
@@ -36,12 +32,12 @@ function PricesManager() {
         a
       }.json?locations=${actualCity || city.value}`
     );
-    const json: IItem[] = await res.json();
+    const json = await res.json();
     return json;
   };
 
-  const fetchAll = async (array: IItem[]) => {
-    const allAsyncResults: IItem[] = [];
+  const fetchAll = async (array) => {
+    const allAsyncResults = [];
     for (const element of array) {
       const asyncResult = await fetchData(element.item_id, element.city);
       allAsyncResults.push(
@@ -65,13 +61,10 @@ function PricesManager() {
     return allAsyncResults;
   };
 
-  const retrieveData = async (
-    actualUniqueName?: string,
-    actualCity?: string
-  ) => {
+  const retrieveData = async (actualUniqueName, actualCity) => {
     const res = await fetchData(actualUniqueName, actualCity);
 
-    let itemName: string = "";
+    let itemName = "";
 
     if (useful) {
       itemName = useful?.LocalizedNames
@@ -92,15 +85,15 @@ function PricesManager() {
     }
   };
 
-  const removeResult = (index: number) => {
+  const removeResult = (index) => {
     const filtered = resultsTable.filter((e, i) => i !== index);
     setResultsTable(filtered);
   };
 
-  const sortBy = (property: string, desc?: boolean) => {
-    function compare(a: IItem, b: IItem) {
-      const valueA = a[property as keyof IItem]; // Aquí asumimos que la propiedad es una clave de IItem
-      const valueB = b[property as keyof IItem];
+  const sortBy = (property, desc) => {
+    function compare(a, b) {
+      const valueA = a[property]; 
+      const valueB = b[property];
 
       if (valueA === undefined || valueB === undefined) {
         return 0;
@@ -127,8 +120,7 @@ function PricesManager() {
     const restoredString = localStorage.getItem("albionItemList");
 
     if (restoredString) {
-      // Verifica si no es null
-      const restored: IItem[] = JSON.parse(restoredString); // JSON.parse solo se llama si el string no es null
+      const restored = JSON.parse(restoredString);
       const newResults = await fetchAll(restored);
       setResultsTable(newResults);
     }
@@ -148,14 +140,12 @@ function PricesManager() {
     setResultsTable(newResults);
   };
 
-  const onSetUseful = (item: IItem | null) => {
-    // Cambia aquí para aceptar IItem | null
+  const onSetUseful = (item) => {
     setEquip(null);
     setUseful(item);
   };
 
-  const onSetEquip = (item: IItem | null) => {
-    // Cambia aquí para aceptar IItem | null
+  const onSetEquip = (item) => {
     setUseful(null);
     setEquip(item);
   };

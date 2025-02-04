@@ -1,54 +1,36 @@
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-# Caerleon MarketPlace
+## Getting Started
 
-## Overview
+First, run the development server:
 
-This web application provides real-time (delay 5-10 minutes) information about items in the Albion Online game markets. Players can access up-to-date data on item prices, market availability, and historical price trends. The application aims to enhance the in-game trading experience by offering valuable insights into the market dynamics.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Features
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Profit Calculator: Help to decide where sell or buy items on the diferents 
-markets
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-Real-Time Data: Get the latest information on item prices and market trends, updated every 5-10 minutes provider by [The Albion Online Data Project](https://www.albion-online-data.com/)
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Items Images: Display images on excelent qualite providers by [Albion Render](https://render.albiononline.com/)
+## Learn More
 
-Filter and Search: Efficiently find items of interest by utilizing filtering and search options, including categories, rarity, and level.
+To learn more about Next.js, take a look at the following resources:
 
-Historical Price Charts: Visualize the historical price trends of items to make informed decisions on buying or selling.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Automatic Updates: The application ensures that market information is automatically refreshed every 5-10 minutes to provide users with accurate and timely data.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-Mobile Optimization: Access the application easily on mobile devices for on-the-go market monitoring.
+## Deploy on Vercel
 
-## Todo
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-#### Version 0.1.0
-
- - <strike>Home Page.</strike>
- 
-#### Version 0.5.0
-
- - <strike>Implement basic layout and design.</strike>.
- - Implement Footer and Nabvar.
- 
-#### Version 1.0.0
-
- - Integrate with Albion Online API for real-time data.
- - Add search functionality.
- - Deploy 
- 
-#### Version 2.0.0
-
- - Internalization (es, en, pt)
- - Optimize for mobile devices and many browsers (Firefox, Brave, Opera)
-
-#### Version 3.0.0
-
- - Add filtering functionality.
-
-#### Future Enhancements
-
- - Add additional market metrics.
- - Explore options for item comparison features.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

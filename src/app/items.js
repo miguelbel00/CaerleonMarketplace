@@ -1,39 +1,5 @@
-/* eslint-disable comma-dangle */
-/* eslint-disable camelcase */
-/* eslint-disable quotes */
-/* eslint-disable no-unused-vars */
-export interface IItem {
-  LocalizedNames: { "EN-US": string, "ES-ES": string }
-  Index: number
-  UniqueName: string
-  name?: string
-  itemTypeId?: string
-  item_id?: string
-  city?: string
-  qualityLevel?: number
-  quality?: number
-  sellPriceMin?: number
-  sell_price_min?: number
-  sellPriceMinDate?: Date
-  sellPriceMax?: number
-  sellPriceMaxDate?: Date
-  buyPriceMin?: number
-  buyPriceMinDate?: Date
-  buyPriceMax?: number
-  buy_price_max?: number
-  buyPriceMaxDate?: Date
-}
 
-type rawItem = {
-  LocalizedNames: {
-    "EN-US": string,
-    "ES-ES": string,
-  },
-  Index: number
-  UniqueName: string
-}
-
-const allItems: rawItem[] = [
+export const listItems=[
   {
     LocalizedNames: {
       "EN-US": "Hideout Construction Kit",
@@ -56323,38 +56289,3 @@ const allItems: rawItem[] = [
     UniqueName: "T8_RANDOM_DUNGEON_TOKEN_4@3"
   }
 ]
-
-
-export const usefulItems = allItems.filter(e => e.Index <= 905)
-export const equipItems = allItems.filter(e => e.Index >= 1533 && e.Index <= 3983)
-
-const runesOrder = (name: string) => {
-  if (name.includes('RUNE')) {
-    return 'A'
-  } else if (name.includes('SOUL')) {
-    return 'B'
-  } else {
-    return 'C'
-  }
-}
-
-const compareRunes = (a: rawItem, b: rawItem) => {
-  const compareA = runesOrder(a.UniqueName)
-  const compareB = runesOrder(b.UniqueName)
-
-  if (compareA < compareB) {
-    return -1
-  } else if (compareA > compareB) {
-    return 1
-  } else {
-    if (a.UniqueName < b.UniqueName) {
-      return -1
-    } else if (a.UniqueName > b.UniqueName) {
-      return 1
-    } else {
-      return 0
-    }
-  }
-}
-
-export const runesFixed = allItems.filter(e => e.Index >= 1493 && e.Index <= 1519).filter(e => e.UniqueName.includes('RUNE') || e.UniqueName.includes('SOUL') || e.UniqueName.includes('RELIC')).sort(compareRunes)
