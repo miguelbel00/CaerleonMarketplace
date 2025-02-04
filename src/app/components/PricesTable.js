@@ -81,7 +81,7 @@ const PricesTable = ({ elements, sortByCallback, removeResultCallback }) => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{e.sell_price_min}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{e.buy_price_max}</td>
                     <td
-                      className="cursor-pointer px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      className="cursor-pointer px-6 py-4 whitespace-nowrap text-right text-red-600  text-sm font-medium"
                       onClick={() => removeResultCallback(index)}
                     >
                       Eliminar
