@@ -7,21 +7,14 @@ import PricesTable from './components/PricesTable';
 
 export default function Home() {
 
-
-
   useEffect(() => {
     const savedSearch = localStorage.getItem('selectedSearch');
     const savedCities = localStorage.getItem('selectedCities');
-  
-    if (savedSearch) {
-      setSelectedSearch(JSON.parse(savedSearch));
-    }
-    if (savedCities) {
-      setSelectedCities(JSON.parse(savedCities));
-    }
+
+    if (savedSearch) setSelectedSearch(JSON.parse(savedSearch));
+    if (savedCities) setSelectedCities(JSON.parse(savedCities));
   }, []);
 
-  
 
   const [selectedSearch, setSelectedSearch] = useState([]);
   const [selectedCities, setSelectedCities] = useState([{ value: 'Black%20Market', label: 'Black Market' }]); // Establecer Black Market como seleccionado por defecto
@@ -30,18 +23,12 @@ export default function Home() {
   const [inputValue, setInputValue] = useState('');
   const [resultsTable, setResultsTable] = useState([]);
   const [debouncedInput, setDebouncedInput] = useState('');
+  const [lastUpdate, setLastUpdate] = useState('');
 
-
-
-  
   useEffect(() => {
     localStorage.setItem('selectedSearch', JSON.stringify(selectedSearch));
     localStorage.setItem('selectedCities', JSON.stringify(selectedCities));
   }, [selectedSearch, selectedCities]);
-
-
-  
-
 
   useEffect(() => {
     setIsClient(true);
@@ -81,7 +68,7 @@ export default function Home() {
           .then(data => {
             // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
             return data
-               .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
+              .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
               .map(itemData => ({
                 ...itemData,
                 city: selectedCity.value,
@@ -102,6 +89,9 @@ export default function Home() {
       } else {
         setResultsTable(allResults); // Actualizar los datos en la tabla
       }
+      const now = new Date().toLocaleString();
+      setLastUpdate(now);
+      localStorage.setItem('lastUpdate', now);
     } catch (error) {
       console.error('Error al obtener los datos:', error);
     }
@@ -164,7 +154,7 @@ export default function Home() {
       backgroundColor: 'white',
       borderColor: '#ccc',
       color: '#333',
-      minWidth: '150px',
+      minWidth: '300px',
       width: 'auto',
       '&:hover': {
         borderColor: '#888',
@@ -190,14 +180,14 @@ export default function Home() {
   if (!isClient) return null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center space-y-4 p-6 bg-gray-100">
-      <h1 className="text-2xl text-black font-bold">Data Albion Search</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center space-y-4 p-6 bg-gray-100 ">
+      <h1 className="text-3xl font-bold text-gray-900 bg-white px-6 py-2 rounded-xl shadow-md">Data Albion Search</h1>
 
       {/* Selector de idioma */}
-      <div className="w-64">
-        <label className="block text-gray-700">Selecciona el Idioma de Busqueda</label>
+      <div className="w-96 p-4 bg-white rounded-xl shadow-lg text-center">
+        <label className="block text-gray-700 font-semibold ">Selecciona el Idioma de Busqueda</label>
         <Select
-          className="w-full"
+          className="w-full mt-2"
           options={languageOptions}
           value={languageOptions.find(option => option.value === select1)}
           onChange={handleLanguageChange}
@@ -206,11 +196,11 @@ export default function Home() {
       </div>
 
       {/* Buscador por nombre */}
-      <div className="w-64">
-        <label className="block text-gray-700">Busqueda por Nombre</label>
+      <div className="w-96 p-4 bg-white rounded-xl shadow-lg text-center">
+        <label className="block text-gray-700 font-semibold">Busqueda por Nombre</label>
         <Select
           isMulti
-          className="w-full"
+          className="w-full mt-2"
           placeholder='Seleccionar...'
           options={filteredOptions}
           value={selectedSearch}
@@ -224,12 +214,12 @@ export default function Home() {
       </div>
 
       {/* Ciudades */}
-      <div className="w-64 mt-4">
-        <label className="block text-gray-700 mb-2">Ciudades</label>
-        <div className="flex flex-wrap gap-2">
+      <div className="w-96 p-4 bg-white rounded-xl shadow-lg text-center ">
+        <label className="block text-gray-700 font-semibold mb-2">Ciudades</label>
+        <div className="flex flex-wrap gap-2 p-2 justify-center ">
           <button
             onClick={() => setSelectedCities(cities.map(c => ({ value: c.value, label: c.label })))}
-            className="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-medium hover:bg-green-600 transition-colors"
+            className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
           >
             Seleccionar todas
           </button>
@@ -238,7 +228,7 @@ export default function Home() {
             <button
               key={city.value}
               onClick={() => toggleCity(city.value)}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${selectedCities.some(s => s.value === city.value)
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${selectedCities.some(s => s.value === city.value)
                 ? 'bg-blue-500 text-white'
                 : 'bg-gray-200 text-gray-700'
                 } hover:bg-blue-400 hover:text-white transition-colors`}
@@ -248,28 +238,31 @@ export default function Home() {
           ))}
         </div>
       </div>
-
+      <div className="w-96 p-3 bg-white shadow-md rounded-lg border border-gray-200 text-center mt-4">
+        <p className="text-gray-500 text-sm">Última Actualizacion</p>
+        <p className="text-gray-800 font-semibold">{lastUpdate || 'No disponible'}</p>
+      </div>
       {/* Botones de acción */}
-      <div className="space-x-4">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md" onClick={handleFetchData}>
+      <div className="space-x-4 ">
+        <button className="w-44 px-4 py-2 bg-blue-500 text-white rounded-md" onClick={handleFetchData}>
           Buscar
         </button>
         <button
-  className="px-4 py-2 bg-red-500 text-white rounded-md"
-  onClick={() => {
-    setResultsTable([]);
-    setSelectedSearch([]);
-    setSelectedCities([{ value: 'Black%20Market', label: 'Black Market' }]);
-    localStorage.removeItem('selectedSearch'); // Limpiar cache
-    localStorage.removeItem('selectedCities');
-  }}
->
-  Borrar
-</button>
-
+          className=" w-44 px-4 py-2 bg-red-500 text-white rounded-md"
+          onClick={() => {
+            setResultsTable([]);
+            setSelectedSearch([]);
+            setSelectedCities([{ value: 'Black%20Market', label: 'Black Market' }]);
+            setLastUpdate('');
+            localStorage.removeItem('selectedSearch'); // Limpiar cache
+            localStorage.removeItem('selectedCities');
+            localStorage.removeItem('lastUpdate');
+          }}
+        >
+          Borrar
+        </button>
       </div>
 
-      {/* Tabla con los datos obtenidos */}
       <PricesTable
         elements={resultsTable}
         sortByCallback={(column) => { console.log('Ordenar por', column); }}

@@ -106,11 +106,13 @@ const PricesTable = ({ elements, removeResultCallback }) => {
   });
 
   return (
-    <div className="overflow-x-auto p-4">
+    <div className="overflow-x-auto p-4 bg-white rounded-xl shadow-lg">
       {/* Filtros */}
-      <div className="mb-4 flex  space-x-4">
+      <label className="block text-center  text-gray-700 font-semibold mb-2">Filtros</label>
+      <div className="mb-4 flex  space-x-4 justify-evenly">
         <Select
           displayEmpty
+           className='w-48 min-w-[12rem] bg-white  rounded-xl shadow-lg'
           value={filterCity}
           onChange={(e) => setFilterCity(e.target.value)}
           variant="outlined"
@@ -122,6 +124,7 @@ const PricesTable = ({ elements, removeResultCallback }) => {
           ))}
         </Select>
         <Select
+        className='w-48 min-w-[12rem]  bg-white rounded-xl shadow-lg'
           displayEmpty
           value={filterQuality}
           onChange={(e) => setFilterQuality(e.target.value)}
