@@ -6,6 +6,23 @@ import Select from 'react-select';
 import PricesTable from './components/PricesTable';
 
 export default function Home() {
+
+
+
+  useEffect(() => {
+    const savedSearch = localStorage.getItem('selectedSearch');
+    const savedCities = localStorage.getItem('selectedCities');
+  
+    if (savedSearch) {
+      setSelectedSearch(JSON.parse(savedSearch));
+    }
+    if (savedCities) {
+      setSelectedCities(JSON.parse(savedCities));
+    }
+  }, []);
+
+  
+
   const [selectedSearch, setSelectedSearch] = useState([]);
   const [selectedCities, setSelectedCities] = useState([{ value: 'Black%20Market', label: 'Black Market' }]); // Establecer Black Market como seleccionado por defecto
   const [select1, setSelect1] = useState('ES-ES');
@@ -13,6 +30,18 @@ export default function Home() {
   const [inputValue, setInputValue] = useState('');
   const [resultsTable, setResultsTable] = useState([]);
   const [debouncedInput, setDebouncedInput] = useState('');
+
+
+
+  
+  useEffect(() => {
+    localStorage.setItem('selectedSearch', JSON.stringify(selectedSearch));
+    localStorage.setItem('selectedCities', JSON.stringify(selectedCities));
+  }, [selectedSearch, selectedCities]);
+
+
+  
+
 
   useEffect(() => {
     setIsClient(true);
@@ -52,7 +81,7 @@ export default function Home() {
           .then(data => {
             // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
             return data
-              .filter(itemData => itemData.sell_price_min != 0 && itemData.buy_price_max != 0) // Filtrar los items sin precios
+               .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
               .map(itemData => ({
                 ...itemData,
                 city: selectedCity.value,
@@ -84,12 +113,14 @@ export default function Home() {
   ], []);
 
   const options = useMemo(() => {
-    return listItems.map((item) => ({
-      value: item.UniqueName,
-      label: item.LocalizedNames[select1],
-      index: item.Index
-    }));
+    return listItems
+      .map(item => ({
+        value: item.UniqueName,
+        label: item.LocalizedNames[select1],
+        index: item.Index,
+      }));
   }, [select1]);
+
 
   const filteredOptions = useMemo(() => {
     if (!inputValue) return [];
@@ -164,7 +195,7 @@ export default function Home() {
 
       {/* Selector de idioma */}
       <div className="w-64">
-        <label className="block text-gray-700">Selecciona el Idioma</label>
+        <label className="block text-gray-700">Selecciona el Idioma de Busqueda</label>
         <Select
           className="w-full"
           options={languageOptions}
@@ -223,9 +254,19 @@ export default function Home() {
         <button className="px-4 py-2 bg-blue-500 text-white rounded-md" onClick={handleFetchData}>
           Buscar
         </button>
-        <button className="px-4 py-2 bg-red-500 text-white rounded-md" onClick={() => { setSelectedSearch([]); setSelectedCities([{ value: 'Black%20Market', label: 'Black Market' }]); }}>
-          Borrar
-        </button>
+        <button
+  className="px-4 py-2 bg-red-500 text-white rounded-md"
+  onClick={() => {
+    setResultsTable([]);
+    setSelectedSearch([]);
+    setSelectedCities([{ value: 'Black%20Market', label: 'Black Market' }]);
+    localStorage.removeItem('selectedSearch'); // Limpiar cache
+    localStorage.removeItem('selectedCities');
+  }}
+>
+  Borrar
+</button>
+
       </div>
 
       {/* Tabla con los datos obtenidos */}
