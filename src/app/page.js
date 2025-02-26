@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { listItems } from './items'; // Importar los datos desde items.js
 import Select from 'react-select';
-import PricesTable from './components/PricesTable';
+import BasicTabs from './components/tabs';
 
 export default function Home() {
 
@@ -15,15 +15,21 @@ export default function Home() {
     if (savedCities) setSelectedCities(JSON.parse(savedCities));
   }, []);
 
-
+  const [tabValue, setTabValue] = useState(0);
   const [selectedSearch, setSelectedSearch] = useState([]);
   const [selectedCities, setSelectedCities] = useState([{ value: 'Black%20Market', label: 'Black Market' }]); // Establecer Black Market como seleccionado por defecto
   const [select1, setSelect1] = useState('ES-ES');
   const [isClient, setIsClient] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const [resultsTable, setResultsTable] = useState([]);
+  const [itemsSearchResults, setItemsSearchTable] = useState([]);
+  const [blackMarketResults, setBlackMarketResults] = useState([]);
   const [debouncedInput, setDebouncedInput] = useState('');
   const [lastUpdate, setLastUpdate] = useState('');
+
+  const changeTab = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
 
   useEffect(() => {
     localStorage.setItem('selectedSearch', JSON.stringify(selectedSearch));
@@ -40,8 +46,8 @@ export default function Home() {
   }, [inputValue]);
 
   const removeItem = (index) => {
-    const updatedResults = resultsTable.filter((_, i) => i !== index);
-    setResultsTable(updatedResults); // Actualizamos el estado eliminando el ítem
+    const updatedResults = itemsSearchResults.filter((_, i) => i !== index);
+    setItemsSearchTable(updatedResults); // Actualizamos el estado eliminando el ítem
   };
 
 
@@ -52,7 +58,7 @@ export default function Home() {
       .toLowerCase();
   };
 
-  const handleFetchData = async () => {
+  const fetchBuscar = async () => {
     if (selectedSearch.length === 0 || selectedCities.length === 0) {
       alert('Por favor, selecciona al menos un item o una ciudad.');
       return;
@@ -87,7 +93,7 @@ export default function Home() {
       if (allResults.length === 0) {
         alert('No se encontraron resultados');
       } else {
-        setResultsTable(allResults); // Actualizar los datos en la tabla
+        setItemsSearchTable(allResults); // Actualizar los datos en la tabla
       }
       const now = new Date().toLocaleString();
       setLastUpdate(now);
@@ -96,6 +102,95 @@ export default function Home() {
       console.error('Error al obtener los datos:', error);
     }
   };
+
+
+
+  const fetchComparar = async () => {
+    if (selectedSearch.length === 0 || selectedCities.length === 0) {
+      alert('Por favor, selecciona al menos un item o una ciudad.');
+      return;
+    }
+
+    
+
+    const fetchPromisesItems = [];
+    const fetchBlackMarket = []
+    
+    //data de blackmarket
+    selectedSearch.forEach(selectSearch => {
+      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=Black Market`;
+      const fetchPromise = fetch(fetchUrl)
+        .then(res => res.json())
+        .then(data => {
+          // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
+          return data
+            .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
+            .map(itemData => ({
+              ...itemData,
+              city: 'Black%20Market',
+              name: selectSearch.label,
+            }));
+        })
+        .catch(error => console.error('Error fetching data:', error));
+
+        fetchBlackMarket.push(fetchPromise);
+    });
+  
+    //data general
+    selectedSearch.forEach(selectSearch => {
+      selectedCities.forEach(selectedCity => {
+        const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${selectedCity.value}`;
+        const fetchPromise = fetch(fetchUrl)
+          .then(res => res.json())
+          .then(data => {
+            // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
+            return data
+              .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
+              .map(itemData => ({
+                ...itemData,
+                city: selectedCity.value,
+                name: selectSearch.label,
+              }));
+          })
+          .catch(error => console.error('Error fetching data:', error));
+
+          fetchPromisesItems.push(fetchPromise);
+      });
+    });
+
+    try {
+      const resultsItems = await Promise.all(fetchPromisesItems);
+      const allResultsItems = resultsItems.flat();
+      const resultsBlackMarket = await Promise.all(fetchBlackMarket);
+      const allResultsBlackMarket = resultsBlackMarket.flat();
+
+      const updatedResults = allResultsItems.map(result => {
+        const blackMarketItem = allResultsBlackMarket.find(
+          resultBlackMarket => resultBlackMarket.item_id == result.item_id && resultBlackMarket.quality == result.quality
+        );
+        console.log(allResultsBlackMarket)
+        return {
+          ...result,
+          profit: (blackMarketItem?.sell_price_min || 0) - (result?.sell_price_min || 0 ),
+          sell_price_min_black_market :(blackMarketItem?.sell_price_min || 0)
+        };
+      });
+
+      if (updatedResults.length === 0) {
+        alert('No se encontraron resultados');
+      } else {
+        setBlackMarketResults(updatedResults); // Actualizar los datos en la tabla
+      }
+      const now = new Date().toLocaleString();
+      setLastUpdate(now);
+      localStorage.setItem('lastUpdate', now);
+    } catch (error) {
+      console.error('Error al obtener los datos:', error);
+    }
+  };
+
+
+
 
   const languageOptions = useMemo(() => [
     { value: 'EN-US', label: 'English' },
@@ -182,7 +277,6 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center space-y-4 p-6 bg-gray-100 ">
       <h1 className="text-3xl font-bold text-gray-900 bg-white px-6 py-2 rounded-xl shadow-md">Data Albion Search</h1>
-
       {/* Selector de idioma */}
       <div className="w-96 p-4 bg-white rounded-xl shadow-lg text-center">
         <label className="block text-gray-700 font-semibold ">Selecciona el Idioma de Busqueda</label>
@@ -244,14 +338,15 @@ export default function Home() {
       </div>
       {/* Botones de acción */}
       <div className="space-x-4 ">
-        <button className="w-44 px-4 py-2 bg-blue-500 text-white rounded-md" onClick={handleFetchData}>
+        <button className="w-44 px-4 py-2 bg-blue-500 text-white rounded-md" onClick={() => {tabValue==0 ? fetchBuscar() : fetchComparar()}}>
           Buscar
         </button>
         <button
           className=" w-44 px-4 py-2 bg-red-500 text-white rounded-md"
           onClick={() => {
-            setResultsTable([]);
+            setItemsSearchTable([]);
             setSelectedSearch([]);
+            setBlackMarketResults([]);
             setSelectedCities([{ value: 'Black%20Market', label: 'Black Market' }]);
             setLastUpdate('');
             localStorage.removeItem('selectedSearch'); // Limpiar cache
@@ -262,12 +357,7 @@ export default function Home() {
           Borrar
         </button>
       </div>
-
-      <PricesTable
-        elements={resultsTable}
-        sortByCallback={(column) => { console.log('Ordenar por', column); }}
-        removeResultCallback={removeItem}
-      />
+      <BasicTabs profitElements={blackMarketResults} changeTab={changeTab} tabValue={tabValue} removeResultCallback={removeItem} elements={itemsSearchResults} sortByCallback={(column) => { console.log('Ordenar por', column); }} ></BasicTabs>
     </div>
   );
 }
