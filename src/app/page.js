@@ -168,7 +168,6 @@ export default function Home() {
         const blackMarketItem = allResultsBlackMarket.find(
           resultBlackMarket => resultBlackMarket.item_id == result.item_id && resultBlackMarket.quality == result.quality
         );
-        console.log(allResultsBlackMarket)
         return {
           ...result,
           profit: (blackMarketItem?.sell_price_min || 0) - (result?.sell_price_min || 0 ),
