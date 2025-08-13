@@ -1,26 +1,32 @@
 import React, { useMemo, useState,useEffect } from 'react';
 import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender } from '@tanstack/react-table';
 import { Button, TextField, MenuItem, Select } from '@mui/material';
+import { getCities } from '../constants';
+import { getTranslation } from '../translations';
+import { listItems } from '../items';
 
 // Función para obtener la calidad del objeto
-const getQuality = (quality) => {
-  if (quality == null) return 'Desconocido'; // Si es undefined o null, evitar el error
-  const qualities = ['Plano', 'Bueno', 'Notable', 'Sobresaliente', 'Obra maestra'];
-  return qualities[quality - 1] || 'Desconocido';
+const getQuality = (quality, language = 'ES-ES') => {
+  if (quality == null) return getTranslation(language, 'unknown'); // Si es undefined o null, evitar el error
+  const qualities = [
+    getTranslation(language, 'plain'),
+    getTranslation(language, 'good'),
+    getTranslation(language, 'outstanding'),
+    getTranslation(language, 'excellent'),
+    getTranslation(language, 'masterpiece')
+  ];
+  return qualities[quality - 1] || getTranslation(language, 'unknown');
+};
+
+// Función para obtener el nombre traducido del item
+const getItemName = (itemId, language = 'ES-ES') => {
+  const item = listItems.find(item => item.UniqueName === itemId);
+  return item ? item.LocalizedNames[language] || item.LocalizedNames['EN-US'] || itemId : itemId;
 };
 
 
-const cities = [
-  { label: 'Black Market', value: 'Black%20Market' },
-  { label: 'Bridgewatch', value: 'Bridgewatch' },
-  { label: 'Caerleon', value: 'Caerleon' },
-  { label: 'Fort Sterling', value: 'Fort%20Sterling' },
-  { label: 'Lymhurst', value: 'Lymhurst' },
-  { label: 'Martlock', value: 'Martlock' },
-  { label: 'Thetford', value: 'Thetford' },
-];
-
-const ComprativePrices = ({ elements, removeResultCallback }) => {
+const ComprativePrices = ({ elements, removeResultCallback, language = 'ES-ES' }) => {
+  const cities = getCities(language);
   const [filterCity, setFilterCity] = useState('');
   const [filterQuality, setFilterQuality] = useState('');
 
@@ -35,7 +41,7 @@ const ComprativePrices = ({ elements, removeResultCallback }) => {
   const columns = useMemo(
     () => [
       {
-        header: 'Imagen',
+        header: getTranslation(language, 'image'),
         accessorKey: 'image',
         cell: ({ row }) => (
           <div className="relative group w-12 h-12">
@@ -46,31 +52,31 @@ const ComprativePrices = ({ elements, removeResultCallback }) => {
             />
             {/* Tooltip al hacer hover */}
             <span className="absolute left-1/2 -translate-x-1/2 -top-8 opacity-0 group-hover:opacity-100 bg-gray-800 text-white text-xs px-2 py-1 rounded">
-              {`${row.original.name} (${getQuality(row.original.quality)})`}
+              {`${getItemName(row.original.item_id, language)} (${getQuality(row.original.quality, language)})`}
             </span>
           </div>
         ),
       },
       {
-        header: 'Calidad',
+        header: getTranslation(language, 'quality'),
         accessorKey: 'quality',
-        cell: ({ getValue }) => <span className="font-semibold">{getQuality(getValue())}</span>,
+        cell: ({ getValue }) => <span className="font-semibold">{getQuality(getValue(), language)}</span>,
       },
       {
-        header: 'Ciudad',
+        header: getTranslation(language, 'city'),
         accessorKey: 'city',
         cell: ({ getValue }) => <span>{decodeURIComponent(getValue())}</span>,
       },
       {
-        header: 'Venta - Min',
+        header: getTranslation(language, 'sellPriceMin'),
         accessorKey: 'sell_price_min',
       },
       {
-        header: 'Compra - Max',
+        header: getTranslation(language, 'buyPriceMax'),
         accessorKey: 'buy_price_max',
       },
       {
-        header: 'Acciones',
+        header: getTranslation(language, 'actions'),
         accessorKey: 'actions',
         cell: ({ row }) => (
           <Button
@@ -80,21 +86,21 @@ const ComprativePrices = ({ elements, removeResultCallback }) => {
             className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
             onClick={() => removeResultCallback(row.original.id)}
           >
-            Eliminar
+            {getTranslation(language, 'remove')}
           </Button>
         ),
       },
     ],
-    [removeResultCallback]
+    [removeResultCallback, language]
   );
 
   // Aplicar filtros
   const filteredData = useMemo(() => {
     return elements.filter((e) =>
       (filterCity === '' || e.city === filterCity) &&
-      (filterQuality === '' || getQuality(e.quality) === filterQuality)
+      (filterQuality === '' || getQuality(e.quality, language) === filterQuality)
     );
-  }, [elements, filterCity, filterQuality]);
+  }, [elements, filterCity, filterQuality, language]);
 
   const data = useMemo(() => filteredData.map((e, index) => ({ ...e, id: index })), [filteredData]);
 
@@ -108,7 +114,7 @@ const ComprativePrices = ({ elements, removeResultCallback }) => {
   return (
     <div className="overflow-x-auto p-4 bg-white rounded-xl shadow-lg">
       {/* Filtros */}
-      <label className="block text-center  text-gray-700 font-semibold mb-2">Filtros</label>
+      <label className="block text-center  text-gray-700 font-semibold mb-2">{getTranslation(language, 'filters')}</label>
       <div className="mb-4 flex  space-x-4 justify-evenly">
         <Select
           displayEmpty
@@ -118,7 +124,7 @@ const ComprativePrices = ({ elements, removeResultCallback }) => {
           variant="outlined"
           size="small"
         >
-          <MenuItem value="">Todas las ciudades</MenuItem>
+          <MenuItem value="">{getTranslation(language, 'allCities')}</MenuItem>
           {cities.map((city) => (
             <MenuItem key={city.value} value={city.value}>{city.label}</MenuItem>
           ))}
@@ -131,8 +137,14 @@ const ComprativePrices = ({ elements, removeResultCallback }) => {
           variant="outlined"
           size="small"
         >
-          <MenuItem value="">Todas las calidades</MenuItem>
-          {['Plano', 'Bueno', 'Notable', 'Sobresaliente', 'Obra maestra'].map((quality) => (
+          <MenuItem value="">{getTranslation(language, 'selectAll')}</MenuItem>
+          {[
+            getTranslation(language, 'plain'),
+            getTranslation(language, 'good'),
+            getTranslation(language, 'outstanding'),
+            getTranslation(language, 'excellent'),
+            getTranslation(language, 'masterpiece')
+          ].map((quality) => (
             <MenuItem key={quality} value={quality}>{quality}</MenuItem>
           ))}
         </Select>

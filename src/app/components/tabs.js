@@ -4,8 +4,9 @@ import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import PricesTable from "./PricesTable";
 import PricesItemsProfit from "./PricesItemsProfit";
+import { getTranslation } from "../translations";
 
-export default function MuiTailwindTabs({ elements, removeResultCallback, sortByCallback, changeTab, tabValue,profitElements }) {
+export default function MuiTailwindTabs({ elements, removeResultCallback, sortByCallback, changeTab, tabValue, profitElements, language = 'ES-ES' }) {
 
     return (
         <div className="w-full max-w-4xl mx-auto">
@@ -19,12 +20,12 @@ export default function MuiTailwindTabs({ elements, removeResultCallback, sortBy
                     TabIndicatorProps={{ className: "bg-blue-500" }} // Personaliza el indicador con Tailwind
                 >
                     <Tab
-                        label="Precio items"
+                        label={getTranslation(language, 'priceItems')}
                         className={`text-gray-600 hover:text-blue-500 ${tabValue === 0 ? "text-blue-500 font-semibold" : ""
                             }`}
                     />
                     <Tab
-                        label="Comparativa Black Market"
+                        label={getTranslation(language, 'comparativeBlackMarket')}
                         className={`text-gray-600 hover:text-blue-500 ${tabValue === 1 ? "text-blue-500 font-semibold" : ""
                             }`}
                     />
@@ -37,10 +38,12 @@ export default function MuiTailwindTabs({ elements, removeResultCallback, sortBy
                     elements={elements}
                     sortByCallback={sortByCallback}
                     removeResultCallback={removeResultCallback}
+                    language={language}
                 /></div>}
                 {tabValue === 1 && <div><PricesItemsProfit elements={profitElements}
                     sortByCallback={sortByCallback}
-                    removeResultCallback={removeResultCallback} /></div>}
+                    removeResultCallback={removeResultCallback}
+                    language={language} /></div>}
             </div>
         </div>
     );

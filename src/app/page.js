@@ -4,21 +4,22 @@ import { useState, useEffect, useMemo } from 'react';
 import { listItems } from './items'; // Importar los datos desde items.js
 import Select from 'react-select';
 import BasicTabs from './components/tabs';
+import { CITIES, getDefaultCity, getAllCities, getCities } from './constants';
+import { getTranslation } from './translations';
 
 export default function Home() {
 
   useEffect(() => {
     const savedSearch = localStorage.getItem('selectedSearch');
     const savedCities = localStorage.getItem('selectedCities');
-
     if (savedSearch) setSelectedSearch(JSON.parse(savedSearch));
     if (savedCities) setSelectedCities(JSON.parse(savedCities));
   }, []);
 
   const [tabValue, setTabValue] = useState(0);
   const [selectedSearch, setSelectedSearch] = useState([]);
-  const [selectedCities, setSelectedCities] = useState([{ value: 'Black%20Market', label: 'Black Market' }]); // Establecer Black Market como seleccionado por defecto
-  const [select1, setSelect1] = useState('ES-ES');
+  const [select1, setSelect1] = useState('ES-ES'); // Español por defecto
+  const [selectedCities, setSelectedCities] = useState([getDefaultCity(select1)]); // Establecer Black Market como seleccionado por defecto
   const [isClient, setIsClient] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [itemsSearchResults, setItemsSearchTable] = useState([]);
@@ -36,6 +37,18 @@ export default function Home() {
     localStorage.setItem('selectedCities', JSON.stringify(selectedCities));
   }, [selectedSearch, selectedCities]);
 
+  // Actualizar ciudades cuando cambie el idioma
+  useEffect(() => {
+    const currentCities = getCities(select1);
+    setSelectedCities(prev => {
+      // Mantener las ciudades seleccionadas pero con las nuevas traducciones
+      return prev.map(selectedCity => {
+        const translatedCity = currentCities.find(city => city.value === selectedCity.value);
+        return translatedCity || selectedCity;
+      });
+    });
+  }, [select1]);
+
   useEffect(() => {
     setIsClient(true);
     const timer = setTimeout(() => {
@@ -50,7 +63,7 @@ export default function Home() {
     setItemsSearchTable(updatedResults); // Actualizamos el estado eliminando el ítem
   };
 
-
+//Normaliza la cadena de texto eliminando acentos y convirtiéndola a minúsculas
   const normalizeString = (str) => {
     return str
       .normalize("NFD")
@@ -60,38 +73,38 @@ export default function Home() {
 
   const fetchBuscar = async () => {
     if (selectedSearch.length === 0 || selectedCities.length === 0) {
-      alert('Por favor, selecciona al menos un item o una ciudad.');
+      alert(getTranslation(select1, 'selectItemOrCity'));
       return;
     }
 
     const fetchPromises = [];
 
     selectedSearch.forEach(selectSearch => {
-      selectedCities.forEach(selectedCity => {
-        const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${selectedCity.value}`;
-        const fetchPromise = fetch(fetchUrl)
-          .then(res => res.json())
-          .then(data => {
-            // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
-            return data
-              .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
-              .map(itemData => ({
-                ...itemData,
-                city: selectedCity.value,
-                name: selectSearch.label,
-              }));
-          })
-          .catch(error => console.error('Error fetching data:', error));
+      // Crear una sola URL con todas las ciudades concatenadas
+      const citiesString = selectedCities.map(city => encodeURIComponent(city.value)).join(',');
+      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${citiesString}`;
+      
+      const fetchPromise = fetch(fetchUrl)
+        .then(res => res.json())
+        .then(data => {
+          // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
+          return data
+            .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
+            .map(itemData => ({
+              ...itemData,
+              name: selectSearch.label,
+            }));
+        })
+        .catch(error => console.error(getTranslation(select1, 'errorFetchingDataEn'), error));
 
-        fetchPromises.push(fetchPromise);
-      });
+      fetchPromises.push(fetchPromise);
     });
 
     try {
       const results = await Promise.all(fetchPromises);
       const allResults = results.flat();
       if (allResults.length === 0) {
-        alert('No se encontraron resultados');
+        alert(getTranslation(select1, 'noResultsFound'));
       } else {
         setItemsSearchTable(allResults); // Actualizar los datos en la tabla
       }
@@ -107,18 +120,16 @@ export default function Home() {
 
   const fetchComparar = async () => {
     if (selectedSearch.length === 0 || selectedCities.length === 0) {
-      alert('Por favor, selecciona al menos un item o una ciudad.');
+      alert(getTranslation(select1, 'selectItemOrCity'));
       return;
     }
-
-    
 
     const fetchPromisesItems = [];
     const fetchBlackMarket = []
     
     //data de blackmarket
     selectedSearch.forEach(selectSearch => {
-      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=Black Market`;
+      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${encodeURIComponent('Black Market')}`;
       const fetchPromise = fetch(fetchUrl)
         .then(res => res.json())
         .then(data => {
@@ -127,35 +138,35 @@ export default function Home() {
             .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
             .map(itemData => ({
               ...itemData,
-              city: 'Black%20Market',
+              city: 'Black Market',
               name: selectSearch.label,
             }));
         })
-        .catch(error => console.error('Error fetching data:', error));
+        .catch(error => console.error(getTranslation(select1, 'errorFetchingDataEn'), error));
 
         fetchBlackMarket.push(fetchPromise);
     });
   
-    //data general
+    //data general - una sola solicitud por item con todas las ciudades
     selectedSearch.forEach(selectSearch => {
-      selectedCities.forEach(selectedCity => {
-        const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${selectedCity.value}`;
-        const fetchPromise = fetch(fetchUrl)
-          .then(res => res.json())
-          .then(data => {
-            // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
-            return data
-              .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
-              .map(itemData => ({
-                ...itemData,
-                city: selectedCity.value,
-                name: selectSearch.label,
-              }));
-          })
-          .catch(error => console.error('Error fetching data:', error));
+      // Crear una sola URL con todas las ciudades concatenadas
+      const citiesString = selectedCities.map(city => encodeURIComponent(city.value)).join(',');
+      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${citiesString}`;
+      
+      const fetchPromise = fetch(fetchUrl)
+        .then(res => res.json())
+        .then(data => {
+          // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
+          return data
+            .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
+            .map(itemData => ({
+              ...itemData,
+              name: selectSearch.label,
+            }));
+        })
+        .catch(error => console.error(getTranslation(select1, 'errorFetchingDataEn'), error));
 
-          fetchPromisesItems.push(fetchPromise);
-      });
+        fetchPromisesItems.push(fetchPromise);
     });
 
     try {
@@ -176,7 +187,7 @@ export default function Home() {
       });
 
       if (updatedResults.length === 0) {
-        alert('No se encontraron resultados');
+        alert(getTranslation(select1, 'noResultsFound'));
       } else {
         setBlackMarketResults(updatedResults); // Actualizar los datos en la tabla
       }
@@ -184,12 +195,9 @@ export default function Home() {
       setLastUpdate(now);
       localStorage.setItem('lastUpdate', now);
     } catch (error) {
-      console.error('Error al obtener los datos:', error);
+      console.error(getTranslation(select1, 'errorFetchingData'), error);
     }
   };
-
-
-
 
   const languageOptions = useMemo(() => [
     { value: 'EN-US', label: 'English' },
@@ -232,15 +240,7 @@ export default function Home() {
     });
   };
 
-  const cities = [
-    { label: 'Black Market', value: 'Black%20Market' },
-    { label: 'Bridgewatch', value: 'Bridgewatch' },
-    { label: 'Caerleon', value: 'Caerleon' },
-    { label: 'Fort Sterling', value: 'Fort%20Sterling' },
-    { label: 'Lymhurst', value: 'Lymhurst' },
-    { label: 'Martlock', value: 'Martlock' },
-    { label: 'Thetford', value: 'Thetford' },
-  ];
+  const cities = getCities(select1);
 
   const customStyles = {
     control: (styles) => ({
@@ -275,10 +275,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center space-y-4 p-6 bg-gray-100 ">
-      <h1 className="text-3xl font-bold text-gray-900 bg-white px-6 py-2 rounded-xl shadow-md">Data Albion Search</h1>
+      <h1 className="text-3xl font-bold text-gray-900 bg-white px-6 py-2 rounded-xl shadow-md">{getTranslation(select1, 'title')}</h1>
       {/* Selector de idioma */}
       <div className="w-96 p-4 bg-white rounded-xl shadow-lg text-center">
-        <label className="block text-gray-700 font-semibold ">Selecciona el Idioma de Busqueda</label>
+        <label className="block text-gray-700 font-semibold ">{getTranslation(select1, 'languageSelector')}</label>
         <Select
           className="w-full mt-2"
           options={languageOptions}
@@ -290,17 +290,17 @@ export default function Home() {
 
       {/* Buscador por nombre */}
       <div className="w-96 p-4 bg-white rounded-xl shadow-lg text-center">
-        <label className="block text-gray-700 font-semibold">Busqueda por Nombre</label>
+        <label className="block text-gray-700 font-semibold">{getTranslation(select1, 'searchByName')}</label>
         <Select
           isMulti
           className="w-full mt-2"
-          placeholder='Seleccionar...'
+          placeholder={getTranslation(select1, 'selectPlaceholder')}
           options={filteredOptions}
           value={selectedSearch}
           onChange={setSelectedSearch}
           onInputChange={(newValue) => setInputValue(newValue)}
           getOptionLabel={(e) => e.label}
-          noOptionsMessage={() => 'No results found'}
+          noOptionsMessage={() => getTranslation(select1, 'noResultsFoundMessage')}
           inputValue={inputValue}
           styles={customStyles}
         />
@@ -308,13 +308,13 @@ export default function Home() {
 
       {/* Ciudades */}
       <div className="w-96 p-4 bg-white rounded-xl shadow-lg text-center ">
-        <label className="block text-gray-700 font-semibold mb-2">Ciudades</label>
+        <label className="block text-gray-700 font-semibold mb-2">{getTranslation(select1, 'cities')}</label>
         <div className="flex flex-wrap gap-2 p-2 justify-center ">
           <button
             onClick={() => setSelectedCities(cities.map(c => ({ value: c.value, label: c.label })))}
             className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
           >
-            Seleccionar todas
+            {getTranslation(select1, 'selectAll')}
           </button>
 
           {cities.map((city) => (
@@ -332,13 +332,13 @@ export default function Home() {
         </div>
       </div>
       <div className="w-96 p-3 bg-white shadow-md rounded-lg border border-gray-200 text-center mt-4">
-        <p className="text-gray-500 text-sm">Última Actualizacion</p>
-        <p className="text-gray-800 font-semibold">{lastUpdate || 'No disponible'}</p>
+        <p className="text-gray-500 text-sm">{getTranslation(select1, 'lastUpdate')}</p>
+        <p className="text-gray-800 font-semibold">{lastUpdate || getTranslation(select1, 'noAvailable')}</p>
       </div>
       {/* Botones de acción */}
       <div className="space-x-4 ">
         <button className="w-44 px-4 py-2 bg-blue-500 text-white rounded-md" onClick={() => {tabValue==0 ? fetchBuscar() : fetchComparar()}}>
-          Buscar
+          {getTranslation(select1, 'search')}
         </button>
         <button
           className=" w-44 px-4 py-2 bg-red-500 text-white rounded-md"
@@ -346,17 +346,17 @@ export default function Home() {
             setItemsSearchTable([]);
             setSelectedSearch([]);
             setBlackMarketResults([]);
-            setSelectedCities([{ value: 'Black%20Market', label: 'Black Market' }]);
+            setSelectedCities([getDefaultCity(select1)]);
             setLastUpdate('');
             localStorage.removeItem('selectedSearch'); // Limpiar cache
             localStorage.removeItem('selectedCities');
             localStorage.removeItem('lastUpdate');
           }}
         >
-          Borrar
+          {getTranslation(select1, 'clear')}
         </button>
       </div>
-      <BasicTabs profitElements={blackMarketResults} changeTab={changeTab} tabValue={tabValue} removeResultCallback={removeItem} elements={itemsSearchResults} sortByCallback={(column) => { console.log('Ordenar por', column); }} ></BasicTabs>
+      <BasicTabs profitElements={blackMarketResults} changeTab={changeTab} tabValue={tabValue} removeResultCallback={removeItem} elements={itemsSearchResults} sortByCallback={(column) => { console.log('Ordenar por', column); }} language={select1}></BasicTabs>
     </div>
   );
 }
