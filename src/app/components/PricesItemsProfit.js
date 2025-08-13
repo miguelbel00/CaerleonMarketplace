@@ -94,7 +94,7 @@ const PricesItemsProfit = ({ elements, removeResultCallback, language = 'ES-ES' 
             color="secondary"
             size="small"
             className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700"
-            onClick={() => removeResultCallback(row.original.id)}
+            onClick={() => removeResultCallback(row.original)}
           >
             {getTranslation(language, 'remove')}
           </Button>

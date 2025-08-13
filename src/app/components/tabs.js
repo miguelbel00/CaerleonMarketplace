@@ -6,7 +6,7 @@ import PricesTable from "./PricesTable";
 import PricesItemsProfit from "./PricesItemsProfit";
 import { getTranslation } from "../translations";
 
-export default function MuiTailwindTabs({ elements, removeResultCallback, sortByCallback, changeTab, tabValue, profitElements, language = 'ES-ES' }) {
+export default function MuiTailwindTabs({ elements, removeResultCallback, removeBlackMarketCallback, sortByCallback, changeTab, tabValue, profitElements, language = 'ES-ES' }) {
 
     return (
         <div className="w-full max-w-4xl mx-auto">
@@ -42,7 +42,7 @@ export default function MuiTailwindTabs({ elements, removeResultCallback, sortBy
                 /></div>}
                 {tabValue === 1 && <div><PricesItemsProfit elements={profitElements}
                     sortByCallback={sortByCallback}
-                    removeResultCallback={removeResultCallback}
+                    removeResultCallback={removeBlackMarketCallback}
                     language={language} /></div>}
             </div>
         </div>

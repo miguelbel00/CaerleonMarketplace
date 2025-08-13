@@ -58,9 +58,30 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  const removeItem = (index) => {
-    const updatedResults = itemsSearchResults.filter((_, i) => i !== index);
-    setItemsSearchTable(updatedResults); // Actualizamos el estado eliminando el ítem
+  const removeItem = (itemToRemove) => {
+    // Crear un identificador único para cada item basado en sus propiedades
+    const createItemId = (item) => `${item.item_id}_${item.city}_${item.quality}`;
+    const itemIdToRemove = createItemId(itemToRemove);
+    
+    const updatedResults = itemsSearchResults.filter(item => {
+      const itemId = createItemId(item);
+      return itemId !== itemIdToRemove;
+    });
+    
+    setItemsSearchTable(updatedResults);
+  };
+
+  const removeBlackMarketItem = (itemToRemove) => {
+    // Crear un identificador único para cada item basado en sus propiedades
+    const createItemId = (item) => `${item.item_id}_${item.city}_${item.quality}`;
+    const itemIdToRemove = createItemId(itemToRemove);
+    
+    const updatedResults = blackMarketResults.filter(item => {
+      const itemId = createItemId(item);
+      return itemId !== itemIdToRemove;
+    });
+    
+    setBlackMarketResults(updatedResults);
   };
 
 //Normaliza la cadena de texto eliminando acentos y convirtiéndola a minúsculas
@@ -77,37 +98,35 @@ export default function Home() {
       return;
     }
 
-    const fetchPromises = [];
-
-    selectedSearch.forEach(selectSearch => {
-      // Crear una sola URL con todas las ciudades concatenadas
-      const citiesString = selectedCities.map(city => encodeURIComponent(city.value)).join(',');
-      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${citiesString}`;
-      
-      const fetchPromise = fetch(fetchUrl)
-        .then(res => res.json())
-        .then(data => {
-          // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
-          return data
-            .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
-            .map(itemData => ({
-              ...itemData,
-              name: selectSearch.label,
-            }));
-        })
-        .catch(error => console.error(getTranslation(select1, 'errorFetchingDataEn'), error));
-
-      fetchPromises.push(fetchPromise);
-    });
-
     try {
-      const results = await Promise.all(fetchPromises);
-      const allResults = results.flat();
-      if (allResults.length === 0) {
+      // Crear una sola URL con todos los items y ciudades concatenados
+      const itemsString = selectedSearch.map(item => item.value).join(',');
+      const citiesString = selectedCities.map(city => encodeURIComponent(city.value)).join(',');
+      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${itemsString}.json?locations=${citiesString}`;
+      
+      const response = await fetch(fetchUrl);
+      const data = await response.json();
+      
+      // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
+      const filteredData = data.filter(itemData => 
+        itemData.sell_price_min != 0 || itemData.buy_price_max != 0
+      );
+
+      // Agregar el nombre del item a cada resultado
+      const resultsWithNames = filteredData.map(itemData => {
+        const selectedItem = selectedSearch.find(item => item.value === itemData.item_id);
+        return {
+          ...itemData,
+          name: selectedItem ? selectedItem.label : itemData.item_id,
+        };
+      });
+
+      if (resultsWithNames.length === 0) {
         alert(getTranslation(select1, 'noResultsFound'));
       } else {
-        setItemsSearchTable(allResults); // Actualizar los datos en la tabla
+        setItemsSearchTable(resultsWithNames);
       }
+      
       const now = new Date().toLocaleString();
       setLastUpdate(now);
       localStorage.setItem('lastUpdate', now);
@@ -124,73 +143,52 @@ export default function Home() {
       return;
     }
 
-    const fetchPromisesItems = [];
-    const fetchBlackMarket = []
-    
-    //data de blackmarket
-    selectedSearch.forEach(selectSearch => {
-      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${encodeURIComponent('Black Market')}`;
-      const fetchPromise = fetch(fetchUrl)
-        .then(res => res.json())
-        .then(data => {
-          // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
-          return data
-            .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
-            .map(itemData => ({
-              ...itemData,
-              city: 'Black Market',
-              name: selectSearch.label,
-            }));
-        })
-        .catch(error => console.error(getTranslation(select1, 'errorFetchingDataEn'), error));
-
-        fetchBlackMarket.push(fetchPromise);
-    });
-  
-    //data general - una sola solicitud por item con todas las ciudades
-    selectedSearch.forEach(selectSearch => {
-      // Crear una sola URL con todas las ciudades concatenadas
-      const citiesString = selectedCities.map(city => encodeURIComponent(city.value)).join(',');
-      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${selectSearch.value}.json?locations=${citiesString}`;
-      
-      const fetchPromise = fetch(fetchUrl)
-        .then(res => res.json())
-        .then(data => {
-          // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
-          return data
-            .filter(itemData => itemData.sell_price_min != 0 || itemData.buy_price_max != 0)  /// Filtrar los items sin precios
-            .map(itemData => ({
-              ...itemData,
-              name: selectSearch.label,
-            }));
-        })
-        .catch(error => console.error(getTranslation(select1, 'errorFetchingDataEn'), error));
-
-        fetchPromisesItems.push(fetchPromise);
-    });
-
     try {
-      const resultsItems = await Promise.all(fetchPromisesItems);
-      const allResultsItems = resultsItems.flat();
-      const resultsBlackMarket = await Promise.all(fetchBlackMarket);
-      const allResultsBlackMarket = resultsBlackMarket.flat();
+      // Crear una sola URL con todos los items y todas las ciudades (incluyendo Black Market)
+      const itemsString = selectedSearch.map(item => item.value).join(',');
+      const allCities = [...selectedCities.map(city => city.value), 'Black Market'];
+      const citiesString = allCities.map(city => encodeURIComponent(city)).join(',');
+      const fetchUrl = `https://www.albion-online-data.com/api/v2/stats/Prices/${itemsString}.json?locations=${citiesString}`;
+      
+      const response = await fetch(fetchUrl);
+      const data = await response.json();
+      
+      // Filtrar los datos para eliminar aquellos sin `sell_price_min` o `buy_price_max`
+      const filteredData = data.filter(itemData => 
+        itemData.sell_price_min != 0 || itemData.buy_price_max != 0
+      );
 
-      const updatedResults = allResultsItems.map(result => {
-        const blackMarketItem = allResultsBlackMarket.find(
-          resultBlackMarket => resultBlackMarket.item_id == result.item_id && resultBlackMarket.quality == result.quality
+      // Separar datos de Black Market y ciudades normales
+      const blackMarketData = filteredData.filter(item => item.city === 'Black Market');
+      const normalCitiesData = filteredData.filter(item => item.city !== 'Black Market');
+
+      // Agregar el nombre del item a cada resultado
+      const resultsWithNames = normalCitiesData.map(itemData => {
+        const selectedItem = selectedSearch.find(item => item.value === itemData.item_id);
+        return {
+          ...itemData,
+          name: selectedItem ? selectedItem.label : itemData.item_id,
+        };
+      });
+
+      // Calcular profit para cada item
+      const updatedResults = resultsWithNames.map(result => {
+        const blackMarketItem = blackMarketData.find(
+          bmItem => bmItem.item_id === result.item_id && bmItem.quality === result.quality
         );
         return {
           ...result,
-          profit: (blackMarketItem?.sell_price_min || 0) - (result?.sell_price_min || 0 ),
-          sell_price_min_black_market :(blackMarketItem?.sell_price_min || 0)
+          profit: (blackMarketItem?.sell_price_min || 0) - (result?.sell_price_min || 0),
+          sell_price_min_black_market: (blackMarketItem?.sell_price_min || 0)
         };
       });
 
       if (updatedResults.length === 0) {
         alert(getTranslation(select1, 'noResultsFound'));
       } else {
-        setBlackMarketResults(updatedResults); // Actualizar los datos en la tabla
+        setBlackMarketResults(updatedResults);
       }
+      
       const now = new Date().toLocaleString();
       setLastUpdate(now);
       localStorage.setItem('lastUpdate', now);
@@ -356,7 +354,16 @@ export default function Home() {
           {getTranslation(select1, 'clear')}
         </button>
       </div>
-      <BasicTabs profitElements={blackMarketResults} changeTab={changeTab} tabValue={tabValue} removeResultCallback={removeItem} elements={itemsSearchResults} sortByCallback={(column) => { console.log('Ordenar por', column); }} language={select1}></BasicTabs>
+      <BasicTabs 
+        profitElements={blackMarketResults} 
+        changeTab={changeTab} 
+        tabValue={tabValue} 
+        removeResultCallback={removeItem}
+        removeBlackMarketCallback={removeBlackMarketItem}
+        elements={itemsSearchResults} 
+        sortByCallback={(column) => { console.log('Ordenar por', column); }} 
+        language={select1}
+      />
     </div>
   );
 }
